@@ -39,7 +39,18 @@ namespace gRPCOrderServer
                 await responseStream.WriteAsync(orderResponse);
                 await Task.Delay(TimeSpan.FromSeconds(1), context.CancellationToken);
             }
+        }
 
+        public override async Task<OrderResponse> GetOrdersClientStream(IAsyncStreamReader<OrderRequest> requestStream,
+                                                                ServerCallContext context)
+        {
+            OrderResponse orderResponse = new OrderResponse();
+            List<OrderItem> orderItems = OrderRepository.Orders();
+            await foreach (var message in requestStream.ReadAllAsync())
+            {
+                orderResponse.Orders.Add(orderItems.FirstOrDefault(o => o.Id == message.Id));
+            }
+            return orderResponse;
         }
     }
 }
