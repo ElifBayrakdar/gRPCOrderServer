@@ -23,7 +23,7 @@ namespace gRPCOrderServer
         {
             OrderResponse orderResponse = new OrderResponse();
             orderResponse.Orders.AddRange(OrderRepository.Orders());
-            return Task.FromResult(new OrderResponse());
+            return Task.FromResult(orderResponse);
         }
 
         public override async Task GetOrdersServerStream(Empty request,
@@ -42,13 +42,14 @@ namespace gRPCOrderServer
         }
 
         public override async Task<OrderResponse> GetOrdersClientStream(IAsyncStreamReader<OrderRequest> requestStream,
-                                                                ServerCallContext context)
+                                                                        ServerCallContext context)
         {
             OrderResponse orderResponse = new OrderResponse();
             List<OrderItem> orderItems = OrderRepository.Orders();
             await foreach (var message in requestStream.ReadAllAsync())
             {
                 orderResponse.Orders.Add(orderItems.FirstOrDefault(o => o.Id == message.Id));
+                await Task.Delay(TimeSpan.FromSeconds(1));
             }
             return orderResponse;
         }
