@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using gRPCOrderServer.Services;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -20,18 +21,25 @@ namespace gRPCOrderServer
 
         public override Task<OrderResponse> GetOrder(OrderRequest request, ServerCallContext context)
         {
-            return Task.FromResult(new OrderResponse { Id = 2 });
+            OrderResponse orderResponse = new OrderResponse();
+            orderResponse.Orders.AddRange(OrderRepository.Orders());
+            return Task.FromResult(new OrderResponse());
         }
 
         public override async Task GetOrdersServerStream(Empty request,
                                                          IServerStreamWriter<OrderResponse> responseStream,
                                                          ServerCallContext context)
         {
-            while (!context.CancellationToken.IsCancellationRequested)
+            OrderResponse orderResponse;
+            List<OrderItem> orderItems = OrderRepository.Orders();
+            foreach (var orderItem in orderItems)
             {
-                await responseStream.WriteAsync(new OrderResponse());
+                orderResponse = new OrderResponse();
+                orderResponse.Orders.Add(orderItem);
+                await responseStream.WriteAsync(orderResponse);
                 await Task.Delay(TimeSpan.FromSeconds(1), context.CancellationToken);
             }
+
         }
     }
 }
