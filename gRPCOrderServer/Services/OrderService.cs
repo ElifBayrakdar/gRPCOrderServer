@@ -20,9 +20,10 @@ namespace gRPCOrderServer
         }
 
         public override Task<OrderResponse> GetOrder(OrderRequest request, ServerCallContext context)
-        {
+        {           
+            List<OrderItem> orderItems = OrderRepository.Orders();
             OrderResponse orderResponse = new OrderResponse();
-            orderResponse.Orders.AddRange(OrderRepository.Orders());
+            orderResponse.Orders.Add(orderItems.FirstOrDefault(o => o.Id == request.Id));            
             return Task.FromResult(orderResponse);
         }
 
